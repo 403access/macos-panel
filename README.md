@@ -2,11 +2,14 @@
 
 A small native macOS menu bar app that keeps RAM usage and free disk space visible at all times.
 
+![Menu bar](docs/menubar.png)
+
 ![Panel](docs/panel.png)
 
 ## Features
 
-- Menu bar label like `RAM 72% · 37G free`, with RAM-only and disk-only modes.
+- Menu bar item with two live bars: RAM used (with its percentage) and storage used
+  (with the free space in GB), tinted green / orange / red as usage grows.
 - Click the item for a detail panel:
   - Memory used / free, App, Wired, Compressed, Cached, and swap.
   - Storage used / free for the boot volume plus any other local volumes.
@@ -42,7 +45,7 @@ open /Applications/MacosPanel.app
 ## Usage
 
 - Click the menu bar item to open the panel.
-- The picker in the panel footer chooses what the menu bar shows: RAM % + disk free, RAM % only, or disk free only.
+- The picker in the panel footer chooses what the bar shows: RAM + Disk, RAM only, or Disk only.
 - The gear menu has the refresh interval, **Launch at Login**, and **Quit**.
 - Preferences persist in `dev.olivermolnar.macos-panel`.
 
@@ -54,6 +57,8 @@ open /Applications/MacosPanel.app
 - **Swap** comes from `sysctl vm.swapusage`.
 - **Disk free** uses `volumeAvailableCapacityForImportantUsage`, the same figure Finder shows,
   so purgeable space counts as free. The boot volume is always listed first.
+- In the menu bar, both bars show **used** space. The RAM number is the used percentage; the
+  storage number is the remaining free space.
 - Values refresh every 2 seconds by default.
 
 ## Development
