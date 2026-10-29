@@ -19,11 +19,41 @@ enum MenuBarDisplay: String, CaseIterable, Identifiable {
 struct MenuBarLabel: View {
     @ObservedObject var monitor: SystemMonitor
     @AppStorage("menuBarDisplay") private var display: MenuBarDisplay = .both
+    @AppStorage("menuBarShowsBars") private var showsBars = true
 
     var body: some View {
-        Image(nsImage: MenuBarIcon.make(display: display, memory: monitor.snapshot.memory, volume: primaryVolume))
-            .renderingMode(.original)
-            .help(helpText)
+        Group {
+            if showsBars {
+                Image(nsImage: MenuBarIcon.make(display: display, memory: monitor.snapshot.memory, volume: primaryVolume))
+                    .renderingMode(.original)
+            } else {
+                Text(textLabel)
+                    .font(.system(size: 12, weight: .medium, design: .rounded))
+                    .monospacedDigit()
+            }
+        }
+        .help(helpText)
+    }
+
+    private var textLabel: String {
+        switch display {
+        case .both:
+            "RAM \(memoryText) · \(storageText) free"
+        case .memory:
+            "RAM \(memoryText)"
+        case .storage:
+            "\(storageText) free"
+        }
+    }
+
+    private var memoryText: String {
+        guard let memory = monitor.snapshot.memory else { return "—" }
+        return memory.usedFraction.percentText
+    }
+
+    private var storageText: String {
+        guard let volume = primaryVolume else { return "—" }
+        return ByteFormat.compactFree(volume.free)
     }
 
     private var primaryVolume: VolumeSnapshot? {

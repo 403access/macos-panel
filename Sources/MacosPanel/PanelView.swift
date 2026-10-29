@@ -5,6 +5,7 @@ struct PanelView: View {
     @ObservedObject var monitor: SystemMonitor
 
     @AppStorage("menuBarDisplay") private var display: MenuBarDisplay = .both
+    @AppStorage("menuBarShowsBars") private var showsBars = true
     @State private var launchAtLogin = LaunchAtLogin.isEnabled
     @State private var loginItemError: String?
 
@@ -66,6 +67,13 @@ struct PanelView: View {
             .labelsHidden()
             .controlSize(.small)
             .fixedSize()
+
+            Toggle("Bars", isOn: $showsBars)
+                .toggleStyle(.switch)
+                .controlSize(.mini)
+                .font(.caption)
+                .fixedSize()
+                .help("Show usage bars in the menu bar. Turn off for a text summary.")
 
             Spacer(minLength: 0)
 
