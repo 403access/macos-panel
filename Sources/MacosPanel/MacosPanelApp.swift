@@ -6,6 +6,10 @@ struct MacosPanelApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @StateObject private var monitor = SystemMonitor()
 
+    init() {
+        MenuBarDisplay.migrateLegacyPreferenceIfNeeded()
+    }
+
     var body: some Scene {
         MenuBarExtra {
             PanelView(monitor: monitor)

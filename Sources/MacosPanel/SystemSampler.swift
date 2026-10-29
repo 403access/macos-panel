@@ -4,11 +4,29 @@ import Foundation
 // MARK: - Snapshot models
 
 struct Snapshot {
+    var cpu: CPUSnapshot?
     var memory: MemorySnapshot?
     var volumes: [VolumeSnapshot]
     var date: Date
 
-    static let empty = Snapshot(memory: nil, volumes: [], date: .distantPast)
+    static let empty = Snapshot(cpu: nil, memory: nil, volumes: [], date: .distantPast)
+}
+
+struct CPUSnapshot {
+    struct LoadAverage {
+        let one: Double
+        let five: Double
+        let fifteen: Double
+    }
+
+    /// Overall busy fraction (user + nice + system), 0...1.
+    let usage: Double
+    /// Share of CPU time spent in user code, including nice, 0...1.
+    let user: Double
+    /// Share of CPU time spent in the kernel, 0...1.
+    let system: Double
+    let coreCount: Int
+    let loadAverage: LoadAverage?
 }
 
 struct MemorySnapshot {
@@ -49,7 +67,96 @@ struct VolumeSnapshot: Identifiable {
 
 enum SystemSampler {
     static func snapshot() -> Snapshot {
-        Snapshot(memory: memory(), volumes: volumes(), date: Date())
+        Snapshot(cpu: cpu(), memory: memory(), volumes: volumes(), date: Date())
+    }
+
+    // MARK: CPU
+
+    private struct CPUTicks {
+        var user: UInt32 = 0
+        var system: UInt32 = 0
+        var idle: UInt32 = 0
+        var nice: UInt32 = 0
+    }
+
+    private static let cpuLock = NSLock()
+    private static var previousCPUTicks: [CPUTicks] = []
+
+    /// Percentages are computed from the tick deltas since the previous sample. The first
+    /// sample has no predecessor, so it reports the average since boot.
+    static func cpu() -> CPUSnapshot? {
+        guard let current = cpuTicks(), !current.isEmpty else { return nil }
+
+        cpuLock.lock()
+        let previous = previousCPUTicks
+        previousCPUTicks = current
+        cpuLock.unlock()
+
+        var user: UInt64 = 0
+        var system: UInt64 = 0
+        var idle: UInt64 = 0
+        var nice: UInt64 = 0
+
+        for (index, ticks) in current.enumerated() {
+            let old = index < previous.count ? previous[index] : CPUTicks()
+            // Tick counters are 32-bit and wrap on long uptimes.
+            user &+= UInt64(ticks.user &- old.user)
+            system &+= UInt64(ticks.system &- old.system)
+            idle &+= UInt64(ticks.idle &- old.idle)
+            nice &+= UInt64(ticks.nice &- old.nice)
+        }
+
+        let busy = user &+ nice &+ system
+        let total = busy &+ idle
+        guard total > 0 else { return nil }
+
+        return CPUSnapshot(
+            usage: Double(busy) / Double(total),
+            user: Double(user &+ nice) / Double(total),
+            system: Double(system) / Double(total),
+            coreCount: current.count,
+            loadAverage: loadAverages()
+        )
+    }
+
+    private static func cpuTicks() -> [CPUTicks]? {
+        var cpuCount: natural_t = 0
+        var info: processor_info_array_t?
+        var infoCount: mach_msg_type_number_t = 0
+
+        let result = host_processor_info(
+            mach_host_self(),
+            PROCESSOR_CPU_LOAD_INFO,
+            &cpuCount,
+            &info,
+            &infoCount
+        )
+        guard result == KERN_SUCCESS, let info else { return nil }
+
+        defer {
+            let size = vm_size_t(infoCount) * vm_size_t(MemoryLayout<integer_t>.stride)
+            vm_deallocate(mach_task_self_, vm_address_t(UInt(bitPattern: info)), size)
+        }
+
+        return info.withMemoryRebound(to: processor_cpu_load_info.self, capacity: Int(cpuCount)) { loads in
+            (0..<Int(cpuCount)).map { index in
+                CPUTicks(
+                    user: loads[index].cpu_ticks.0,
+                    system: loads[index].cpu_ticks.1,
+                    idle: loads[index].cpu_ticks.2,
+                    nice: loads[index].cpu_ticks.3
+                )
+            }
+        }
+    }
+
+    private static func loadAverages() -> CPUSnapshot.LoadAverage? {
+        var values = [Double](repeating: 0, count: 3)
+        let count = values.withUnsafeMutableBufferPointer { buffer in
+            getloadavg(buffer.baseAddress, 3)
+        }
+        guard count == 3 else { return nil }
+        return CPUSnapshot.LoadAverage(one: values[0], five: values[1], fifteen: values[2])
     }
 
     // MARK: Memory

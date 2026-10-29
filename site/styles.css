@@ -611,6 +611,11 @@ h2 {
   box-shadow: 0 0 16px rgba(255, 107, 107, 0.35);
 }
 
+.demo-bar.cool span.track i {
+  background: linear-gradient(90deg, #7ee2a8, #4cd07d);
+  box-shadow: 0 0 16px rgba(76, 208, 125, 0.3);
+}
+
 /* gauge demo */
 .demo-gauge {
   width: 100%;

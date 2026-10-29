@@ -4,7 +4,7 @@ import SwiftUI
 struct PanelView: View {
     @ObservedObject var monitor: SystemMonitor
 
-    @AppStorage("menuBarDisplay") private var display: MenuBarDisplay = .both
+    @AppStorage("menuBarDisplay") private var display: MenuBarDisplay = .all
     @AppStorage("menuBarShowsBars") private var showsBars = true
     @State private var launchAtLogin = LaunchAtLogin.isEnabled
     @State private var loginItemError: String?
@@ -19,7 +19,15 @@ struct PanelView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
+            if let cpu = monitor.snapshot.cpu {
+                CPUSection(cpu: cpu)
+                    .padding(14)
+            }
+
             if let memory = monitor.snapshot.memory {
+                if monitor.snapshot.cpu != nil {
+                    Divider().opacity(0.5)
+                }
                 MemorySection(memory: memory)
                     .padding(14)
             }
@@ -58,15 +66,7 @@ struct PanelView: View {
 
     private var footer: some View {
         HStack(spacing: 10) {
-            Picker("Menu Bar", selection: $display) {
-                ForEach(MenuBarDisplay.allCases) { option in
-                    Text(option.title).tag(option)
-                }
-            }
-            .pickerStyle(.menu)
-            .labelsHidden()
-            .controlSize(.small)
-            .fixedSize()
+            metricsMenu
 
             Toggle("Bars", isOn: $showsBars)
                 .toggleStyle(.switch)
@@ -114,9 +114,81 @@ struct PanelView: View {
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
     }
+
+    private var metricsMenu: some View {
+        Menu {
+            Toggle("CPU", isOn: shows(.cpu))
+            Toggle("RAM", isOn: shows(.memory))
+            Toggle("Disk", isOn: shows(.storage))
+        } label: {
+            Label("Menu Bar", systemImage: "menubar.rectangle")
+                .font(.caption)
+        }
+        .menuStyle(.borderlessButton)
+        .menuIndicator(.hidden)
+        .fixedSize()
+        .help("Choose which metrics appear in the menu bar")
+    }
+
+    private func shows(_ metric: MenuBarDisplay) -> Binding<Bool> {
+        Binding(
+            get: { display.contains(metric) },
+            set: { isOn in
+                var updated = display
+                if isOn {
+                    updated.insert(metric)
+                } else {
+                    updated.remove(metric)
+                }
+                // Keep at least one metric so the menu bar item never goes blank.
+                guard !updated.isEmpty else { return }
+                display = updated
+            }
+        )
+    }
 }
 
 // MARK: - Sections
+
+private struct CPUSection: View {
+    let cpu: CPUSnapshot
+
+    private var tint: Color { usageTint(cpu.usage) }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 9) {
+            SectionHeader(title: "CPU", symbol: "cpu.fill", value: cpu.usage.percentText, tint: tint)
+
+            UsageBar(fraction: cpu.usage, tint: tint)
+
+            LazyVGrid(
+                columns: [
+                    GridItem(.flexible(), spacing: 18, alignment: .leading),
+                    GridItem(.flexible(), spacing: 18, alignment: .leading),
+                ],
+                alignment: .leading,
+                spacing: 6
+            ) {
+                StatCell(label: "User", value: cpu.user.percentText)
+                StatCell(label: "System", value: cpu.system.percentText)
+            }
+
+            HStack(spacing: 6) {
+                Text("\(cpu.coreCount) core\(cpu.coreCount == 1 ? "" : "s")")
+                Spacer(minLength: 8)
+                Text(loadText)
+            }
+            .font(.caption)
+            .foregroundStyle(.secondary)
+            .monospacedDigit()
+        }
+    }
+
+    private var loadText: String {
+        guard let load = cpu.loadAverage else { return "Load —" }
+        return String(format: "Load %.2f %.2f %.2f", load.one, load.five, load.fifteen)
+    }
+}
 
 private struct MemorySection: View {
     let memory: MemorySnapshot

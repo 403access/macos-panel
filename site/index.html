@@ -3,18 +3,18 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>MacosPanel — RAM and storage in your menu bar</title>
-<meta name="description" content="MacosPanel is a tiny native macOS menu bar app that shows live RAM and disk usage as two bars you can read at a glance. Free, open source, no Dock icon.">
+<title>MacosPanel — CPU, RAM and storage in your menu bar</title>
+<meta name="description" content="MacosPanel is a tiny native macOS menu bar app that shows live CPU, RAM and disk usage as three bars you can read at a glance. Free, open source, no Dock icon.">
 <meta name="theme-color" content="#08090c">
-<meta property="og:title" content="MacosPanel — RAM and storage in your menu bar">
-<meta property="og:description" content="Two live bars in your menu bar: memory used and disk free. Native Swift, no background daemons, no subscriptions.">
+<meta property="og:title" content="MacosPanel — CPU, RAM and storage in your menu bar">
+<meta property="og:description" content="Three live bars in your menu bar: CPU, memory and disk. Native Swift, no background daemons, no subscriptions.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://403access.github.io/macos-panel/">
 <meta property="og:image" content="https://403access.github.io/macos-panel/assets/panel.png">
 <link rel="canonical" href="https://403access.github.io/macos-panel/">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="MacosPanel — RAM and storage in your menu bar">
-<meta name="twitter:description" content="Two live bars in your menu bar: memory used and disk free. Native Swift, no background daemons, no subscriptions.">
+<meta name="twitter:title" content="MacosPanel — CPU, RAM and storage in your menu bar">
+<meta name="twitter:description" content="Three live bars in your menu bar: CPU, memory and disk. Native Swift, no background daemons, no subscriptions.">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="styles.css">
 <script>document.documentElement.classList.add("js");</script>
@@ -57,10 +57,10 @@
           <span class="pill-dot"></span>
           Free &amp; open source · macOS 14+
         </p>
-        <h1>Memory and storage,<br><span class="grad">always in sight.</span></h1>
+        <h1>CPU, memory and storage,<br><span class="grad">always in sight.</span></h1>
         <p class="lede">
-          MacosPanel lives in your menu bar and shows how much RAM and disk your Mac
-          has left as two live bars. No Dock icon, no helper daemons, nothing to configure.
+          MacosPanel lives in your menu bar and shows how much CPU, RAM and disk your Mac
+          is using as three live bars. No Dock icon, no helper daemons, nothing to configure.
         </p>
         <div class="cta-row">
           <a class="btn btn-primary" href="https://github.com/403access/macos-panel/releases/latest">
@@ -76,13 +76,13 @@
 
       <div class="showcase" role="img" aria-label="MacosPanel running in the macOS menu bar with its detail panel open">
         <div class="bar">
-          <img class="bar-shot" src="assets/menubar.png" alt="MacosPanel's two usage bars in the macOS menu bar" width="1280" height="132">
+          <img class="bar-shot" src="assets/menubar.png" alt="MacosPanel's CPU, RAM and disk usage bars in the macOS menu bar" width="1280" height="132">
         </div>
         <div class="showcase-body">
           <div class="panel-shot">
-            <img src="assets/panel.png" alt="The MacosPanel detail panel showing memory and storage gauges" width="604" height="526">
+            <img src="assets/panel.png" alt="The MacosPanel detail panel showing CPU, memory and storage gauges" width="604" height="526">
           </div>
-          <p class="shot-caption">Click the bars for App, Wired, Compressed, Cached and swap — plus every local volume.</p>
+          <p class="shot-caption">Click the bars for CPU, memory and swap detail — plus every local volume.</p>
         </div>
       </div>
     </div>
@@ -107,11 +107,12 @@
       <div class="grid">
         <article class="card reveal">
           <div class="card-visual bars-demo" aria-hidden="true">
+            <div class="demo-bar cool"><span class="track"><i style="width:24%"></i></span><em>24%</em></div>
             <div class="demo-bar"><span class="track"><i style="width:71%"></i></span><em>71%</em></div>
             <div class="demo-bar hot"><span class="track"><i style="width:96%"></i></span><em>36G</em></div>
           </div>
-          <h3>Two bars, one glance</h3>
-          <p>RAM used and storage free sit right in the menu bar, labelled with the percentage and the GB left. Read the state of your Mac from across the room.</p>
+          <h3>Three bars, one glance</h3>
+          <p>CPU and RAM used along with storage free sit right in the menu bar, labelled with their percentages and the GB left. Read the state of your Mac from across the room.</p>
         </article>
 
         <article class="card reveal">
@@ -128,12 +129,12 @@
 
         <article class="card reveal">
           <div class="card-visual mono-demo" aria-hidden="true">
-            <span class="mono-pill">RAM + Disk</span>
+            <span class="mono-pill">CPU + RAM + Disk</span>
             <span class="switch"><i></i></span>
             <span class="mono-text">Bars</span>
           </div>
           <h3>Bars or plain text</h3>
-          <p>Prefer numbers only? Flip the <em>Bars</em> toggle and the menu bar item becomes a compact text label. Choose RAM, disk, or both.</p>
+          <p>Prefer numbers only? Flip the <em>Bars</em> toggle and the menu bar item becomes a compact text label. Choose CPU, RAM, disk, or any mix.</p>
         </article>
 
         <article class="card reveal">
@@ -146,7 +147,7 @@
             </ul>
           </div>
           <h3>The full breakdown</h3>
-          <p>Click the menu bar item for App, Wired, Compressed, Cached and swap — and used, free plus every local volume on the disk side.</p>
+          <p>Click the menu bar item for CPU user and system time, load average, App, Wired, Compressed, Cached and swap — plus every local volume on the disk side.</p>
         </article>
 
         <article class="card reveal">
@@ -180,11 +181,13 @@
         <p class="eyebrow">Trustworthy numbers</p>
         <h2>The same figures your Mac reports.</h2>
         <p class="lede">
-          MacosPanel reads the kernel directly — <code>host_statistics64</code> for memory and
-          <code>sysctl</code> for swap — instead of parsing shell output. Memory usage follows the
+          MacosPanel reads the kernel directly — <code>host_processor_info</code> for CPU,
+          <code>host_statistics64</code> for memory and <code>sysctl</code> for swap —
+          instead of parsing shell output. Memory usage follows the
           same definition as Activity Monitor, so the numbers agree.
         </p>
         <ul class="checks">
+          <li><span class="check"></span><div><b>CPU is a real interval.</b> Each refresh compares per-core tick counters, so the bar reflects the last couple of seconds instead of the average since boot.</div></li>
           <li><span class="check"></span><div><b>Used = App + Wired + Compressed.</b> Cached files are excluded, exactly like Activity Monitor. Free is what is actually left.</div></li>
           <li><span class="check"></span><div><b>Disk free matches Finder.</b> It uses <code>volumeAvailableCapacityForImportantUsage</code>, so purgeable space counts as available.</div></li>
           <li><span class="check"></span><div><b>No helpers, no sudo, no polling scripts.</b> A single signed app with a menu bar item.</div></li>
@@ -192,7 +195,7 @@
       </div>
       <div class="split-visual reveal">
         <div class="frame">
-          <img src="assets/panel.png" alt="Memory and storage detail panel with gauges" width="604" height="526" loading="lazy">
+          <img src="assets/panel.png" alt="CPU, memory and storage detail panel with gauges" width="604" height="526" loading="lazy">
         </div>
         <div class="frame-chip"><span class="live-dot"></span>Updated every 2 seconds</div>
       </div>

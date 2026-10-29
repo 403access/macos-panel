@@ -1,6 +1,6 @@
 # MacosPanel
 
-A small native macOS menu bar app that keeps RAM usage and free disk space visible at all times.
+A small native macOS menu bar app that keeps CPU, RAM usage, and free disk space visible at all times.
 
 ![Menu bar](docs/menubar.png)
 
@@ -8,14 +8,16 @@ A small native macOS menu bar app that keeps RAM usage and free disk space visib
 
 ## Features
 
-- Menu bar item with two live bars: RAM used (with its percentage) and storage used
-  (with the free space in GB), tinted green / orange / red as usage grows.
-- A **Bars** toggle in the panel footer switches the menu bar between that visualization
-  (the default) and a plain text label.
+- Menu bar item with live bars for CPU, RAM, and storage, tinted green / orange / red as
+  usage grows. CPU and RAM show their percentage; storage shows the free space in GB.
+- A **Menu Bar** menu in the panel footer chooses which of the three metrics appear.
+- A **Bars** toggle switches the menu bar between that visualization (the default) and a
+  plain text label.
 - Click the item for a detail panel:
+  - CPU used, User and System time, core count, and 1 / 5 / 15-minute load averages.
   - Memory used / free, App, Wired, Compressed, Cached, and swap.
   - Storage used / free for the boot volume plus any other local volumes.
-- Green / orange / red gauges once memory or storage gets tight.
+- Green / orange / red gauges once CPU, memory, or storage gets tight.
 - Configurable refresh interval (1, 2, 5, or 10 seconds).
 - Optional launch at login.
 - No Dock icon: it lives only in the menu bar.
@@ -47,20 +49,26 @@ open /Applications/MacosPanel.app
 ## Usage
 
 - Click the menu bar item to open the panel.
-- The picker in the panel footer chooses what the menu bar shows: RAM + Disk, RAM only, or Disk only.
+- The **Menu Bar** menu in the panel footer toggles CPU, RAM, and Disk independently; at
+  least one stays on.
 - The **Bars** switch next to it toggles between the bar visualization (default) and a text label.
 - The gear menu has the refresh interval, **Launch at Login**, and **Quit**.
 - Preferences persist in `dev.olivermolnar.macos-panel`.
 
 ## How the numbers are calculated
 
+- **CPU usage** comes from `host_processor_info` (`PROCESSOR_CPU_LOAD_INFO`). Each refresh
+  computes the busy share from the per-core tick deltas since the previous sample, so it
+  reflects the last couple of seconds rather than the average since boot. The first sample
+  falls back to the since-boot average. **User** includes nice time; **System** is kernel time.
+- **Load average** comes from `getloadavg`, the same 1 / 5 / 15-minute figures `uptime` shows.
 - **Memory used** follows Activity Monitor: App + Wired + Compressed. Cached files are
   excluded from "used", and "free" is the remaining physical memory. Sample values come from
   `host_statistics64`, so no helper tools or `vm_stat` parsing are involved.
 - **Swap** comes from `sysctl vm.swapusage`.
 - **Disk free** uses `volumeAvailableCapacityForImportantUsage`, the same figure Finder shows,
   so purgeable space counts as free. The boot volume is always listed first.
-- In the menu bar, both bars show **used** space. The RAM number is the used percentage; the
+- In the menu bar, every bar shows **used** space. CPU and RAM show the used percentage; the
   storage number is the remaining free space.
 - Values refresh every 2 seconds by default.
 

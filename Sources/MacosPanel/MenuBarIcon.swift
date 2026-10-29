@@ -16,10 +16,25 @@ enum MenuBarIcon {
     private static let horizontalPadding: CGFloat = 1
     private static let imageHeight: CGFloat = 16
 
-    static func make(display: MenuBarDisplay, memory: MemorySnapshot?, volume: VolumeSnapshot?) -> NSImage {
+    static func make(
+        display: MenuBarDisplay,
+        cpu: CPUSnapshot?,
+        memory: MemorySnapshot?,
+        volume: VolumeSnapshot?
+    ) -> NSImage {
         var segments: [Segment] = []
 
-        if display != .storage, let memory {
+        if display.contains(.cpu), let cpu {
+            segments.append(
+                Segment(
+                    fraction: cpu.usage,
+                    text: cpu.usage.percentText,
+                    tint: tint(for: cpu.usage)
+                )
+            )
+        }
+
+        if display.contains(.memory), let memory {
             segments.append(
                 Segment(
                     fraction: memory.usedFraction,
@@ -29,7 +44,7 @@ enum MenuBarIcon {
             )
         }
 
-        if display != .memory, let volume {
+        if display.contains(.storage), let volume {
             segments.append(
                 Segment(
                     fraction: volume.usedFraction,
