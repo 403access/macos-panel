@@ -75,6 +75,28 @@ swift build
 icon), and ad-hoc signs it. Add an app icon by dropping an `.icns` into
 `Contents/Resources` and referencing it from `CFBundleIconFile` in `build.sh` if you want one.
 
+## Website
+
+The marketing site lives in `site/` and is plain HTML/CSS/JS with no build step.
+`.github/workflows/deploy-pages.yml` publishes it to GitHub Pages on every push to
+`main` that changes `site/`.
+
+One-time setup:
+
+1. Open **Settings → Pages** in the GitHub repository.
+2. Under **Build and deployment → Source**, pick **GitHub Actions**.
+3. Push to `main` (or run the workflow manually). The site appears at
+   <https://403access.github.io/macos-panel/>.
+
+To preview locally:
+
+```bash
+cd site && python3 -m http.server 8000
+```
+
+If you add a custom domain, update the absolute URLs in `site/index.html` (canonical and
+Open Graph tags) and the back-link in `site/404.html`.
+
 ## Notes
 
 If **Launch at Login** reports an error, move the app to `/Applications` and try again. macOS

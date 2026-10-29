@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MacosPanel — RAM and storage in your menu bar</title>
+<meta name="description" content="MacosPanel is a tiny native macOS menu bar app that shows live RAM and disk usage as two bars you can read at a glance. Free, open source, no Dock icon.">
+<meta name="theme-color" content="#08090c">
+<meta property="og:title" content="MacosPanel — RAM and storage in your menu bar">
+<meta property="og:description" content="Two live bars in your menu bar: memory used and disk free. Native Swift, no background daemons, no subscriptions.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://403access.github.io/macos-panel/">
+<meta property="og:image" content="https://403access.github.io/macos-panel/assets/panel.png">
+<link rel="canonical" href="https://403access.github.io/macos-panel/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="MacosPanel — RAM and storage in your menu bar">
+<meta name="twitter:description" content="Two live bars in your menu bar: memory used and disk free. Native Swift, no background daemons, no subscriptions.">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="styles.css">
+<script>document.documentElement.classList.add("js");</script>
+</head>
+<body>
+
+<div class="glow glow-a" aria-hidden="true"></div>
+<div class="glow glow-b" aria-hidden="true"></div>
+
+<header class="nav">
+  <div class="container nav-inner">
+    <a class="brand" href="#top" aria-label="MacosPanel home">
+      <svg class="brand-mark" viewBox="0 0 64 64" aria-hidden="true">
+        <rect width="64" height="64" rx="15" fill="#101419"/>
+        <rect x="14" y="21" width="36" height="8" rx="4" fill="#ffffff" opacity=".13"/>
+        <rect x="14" y="21" width="26" height="8" rx="4" fill="#3ddc97"/>
+        <rect x="14" y="35" width="36" height="8" rx="4" fill="#ffffff" opacity=".13"/>
+        <rect x="14" y="35" width="33" height="8" rx="4" fill="#ffb26b"/>
+      </svg>
+      <span>MacosPanel</span>
+    </a>
+    <nav class="nav-links" aria-label="Main">
+      <a href="#features">Features</a>
+      <a href="#numbers">The numbers</a>
+      <a href="#install">Install</a>
+    </nav>
+    <a class="btn btn-ghost btn-sm" href="https://github.com/403access/macos-panel" target="_blank" rel="noreferrer">
+      <svg class="gh" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+      GitHub
+    </a>
+  </div>
+</header>
+
+<main id="top">
+
+  <section class="hero">
+    <div class="container">
+      <div class="hero-copy">
+        <p class="pill">
+          <span class="pill-dot"></span>
+          Free &amp; open source · macOS 14+
+        </p>
+        <h1>Memory and storage,<br><span class="grad">always in sight.</span></h1>
+        <p class="lede">
+          MacosPanel lives in your menu bar and shows how much RAM and disk your Mac
+          has left as two live bars. No Dock icon, no helper daemons, nothing to configure.
+        </p>
+        <div class="cta-row">
+          <a class="btn btn-primary" href="https://github.com/403access/macos-panel/releases/latest">
+            Download for macOS
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M12 4v12m0 0l-5-5m5 5l5-5M5 20h14"/></svg>
+          </a>
+          <a class="btn btn-secondary" href="https://github.com/403access/macos-panel" target="_blank" rel="noreferrer">
+            View source
+          </a>
+        </div>
+        <p class="fine">Native Swift · ~1&nbsp;MB app · No telemetry, no accounts, no subscription</p>
+      </div>
+
+      <div class="showcase" role="img" aria-label="MacosPanel running in the macOS menu bar with its detail panel open">
+        <div class="bar">
+          <img class="bar-shot" src="assets/menubar.png" alt="MacosPanel's two usage bars in the macOS menu bar" width="1280" height="132">
+        </div>
+        <div class="showcase-body">
+          <div class="panel-shot">
+            <img src="assets/panel.png" alt="The MacosPanel detail panel showing memory and storage gauges" width="604" height="526">
+          </div>
+          <p class="shot-caption">Click the bars for App, Wired, Compressed, Cached and swap — plus every local volume.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="strip" aria-label="At a glance">
+    <div class="container strip-inner">
+      <div class="strip-item"><strong>2 s</strong><span>Default refresh</span></div>
+      <div class="strip-item"><strong>0</strong><span>Dock icons</span></div>
+      <div class="strip-item"><strong>100%</strong><span>Native Swift</span></div>
+      <div class="strip-item"><strong>0</strong><span>Accounts or sign-ups</span></div>
+    </div>
+  </section>
+
+  <section id="features" class="section">
+    <div class="container">
+      <header class="section-head">
+        <p class="eyebrow">Features</p>
+        <h2>Everything you need to know,<br>without opening Activity Monitor.</h2>
+      </header>
+
+      <div class="grid">
+        <article class="card reveal">
+          <div class="card-visual bars-demo" aria-hidden="true">
+            <div class="demo-bar"><span class="track"><i style="width:71%"></i></span><em>71%</em></div>
+            <div class="demo-bar hot"><span class="track"><i style="width:96%"></i></span><em>36G</em></div>
+          </div>
+          <h3>Two bars, one glance</h3>
+          <p>RAM used and storage free sit right in the menu bar, labelled with the percentage and the GB left. Read the state of your Mac from across the room.</p>
+        </article>
+
+        <article class="card reveal">
+          <div class="card-visual" aria-hidden="true">
+            <div class="demo-gauge">
+              <div class="demo-head"><span>Memory</span><b class="warn">77%</b></div>
+              <div class="demo-track"><i style="width:77%"></i></div>
+              <div class="demo-foot"><span>18.38 GB of 24 GB</span><span>844 MB free</span></div>
+            </div>
+          </div>
+          <h3>Green, amber, red</h3>
+          <p>Bars shift colour as usage climbs, so a machine that is quietly running out of headroom announces itself before things get slow.</p>
+        </article>
+
+        <article class="card reveal">
+          <div class="card-visual mono-demo" aria-hidden="true">
+            <span class="mono-pill">RAM + Disk</span>
+            <span class="switch"><i></i></span>
+            <span class="mono-text">Bars</span>
+          </div>
+          <h3>Bars or plain text</h3>
+          <p>Prefer numbers only? Flip the <em>Bars</em> toggle and the menu bar item becomes a compact text label. Choose RAM, disk, or both.</p>
+        </article>
+
+        <article class="card reveal">
+          <div class="card-visual" aria-hidden="true">
+            <ul class="mini-list">
+              <li><span>App</span><b>7.79 GB</b></li>
+              <li><span>Wired</span><b>3.37 GB</b></li>
+              <li><span>Compressed</span><b>7.23 GB</b></li>
+              <li><span>Cached</span><b>4.79 GB</b></li>
+            </ul>
+          </div>
+          <h3>The full breakdown</h3>
+          <p>Click the menu bar item for App, Wired, Compressed, Cached and swap — and used, free plus every local volume on the disk side.</p>
+        </article>
+
+        <article class="card reveal">
+          <div class="card-visual" aria-hidden="true">
+            <div class="demo-volumes">
+              <div><span class="disk-ico"></span><div><b>Macintosh HD</b><i style="width:96%"></i></div></div>
+              <div><span class="disk-ico alt"></span><div><b>Archive</b><i style="width:38%"></i></div></div>
+            </div>
+          </div>
+          <h3>Every local volume</h3>
+          <p>Boot volume first, then any other mounted local disk, each with its own used and free figures.</p>
+        </article>
+
+        <article class="card reveal">
+          <div class="card-visual" aria-hidden="true">
+            <div class="demo-settings">
+              <span>↻ Refresh every <b>2 s</b></span>
+              <span>⏻ Launch at Login <i class="on"></i></span>
+            </div>
+          </div>
+          <h3>Quiet by default</h3>
+          <p>No Dock icon, no windows, no notifications. Set the refresh interval to 1, 2, 5 or 10 seconds and let it run at login if you like.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section id="numbers" class="section">
+    <div class="container split">
+      <div class="split-copy">
+        <p class="eyebrow">Trustworthy numbers</p>
+        <h2>The same figures your Mac reports.</h2>
+        <p class="lede">
+          MacosPanel reads the kernel directly — <code>host_statistics64</code> for memory and
+          <code>sysctl</code> for swap — instead of parsing shell output. Memory usage follows the
+          same definition as Activity Monitor, so the numbers agree.
+        </p>
+        <ul class="checks">
+          <li><span class="check"></span><div><b>Used = App + Wired + Compressed.</b> Cached files are excluded, exactly like Activity Monitor. Free is what is actually left.</div></li>
+          <li><span class="check"></span><div><b>Disk free matches Finder.</b> It uses <code>volumeAvailableCapacityForImportantUsage</code>, so purgeable space counts as available.</div></li>
+          <li><span class="check"></span><div><b>No helpers, no sudo, no polling scripts.</b> A single signed app with a menu bar item.</div></li>
+        </ul>
+      </div>
+      <div class="split-visual reveal">
+        <div class="frame">
+          <img src="assets/panel.png" alt="Memory and storage detail panel with gauges" width="604" height="526" loading="lazy">
+        </div>
+        <div class="frame-chip"><span class="live-dot"></span>Updated every 2 seconds</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="install" class="section">
+    <div class="container">
+      <header class="section-head">
+        <p class="eyebrow">Install</p>
+        <h2>Running in under a minute.</h2>
+        <p class="section-sub">macOS 14 Sonoma or newer. The app is ad-hoc signed; if Gatekeeper complains, right-click it and choose <em>Open</em>.</p>
+      </header>
+
+      <div class="install-grid">
+        <ol class="steps">
+          <li class="reveal"><span class="num">1</span><div><b>Download the app</b><p>Grab <code>MacosPanel.app</code> from the latest release on GitHub.</p></div></li>
+          <li class="reveal"><span class="num">2</span><div><b>Move it to Applications</b><p>Drag it into <code>/Applications</code> so login items work reliably.</p></div></li>
+          <li class="reveal"><span class="num">3</span><div><b>Launch and pin it</b><p>Open it once. A menu bar item appears — enable <em>Launch at Login</em> from the gear menu.</p></div></li>
+        </ol>
+
+        <div class="code-card reveal">
+          <div class="code-head">
+            <span class="dots"><i></i><i></i><i></i></span>
+            <span class="code-title">From source</span>
+            <button class="copy" type="button" data-copy="#build-snippet" aria-label="Copy commands">Copy</button>
+          </div>
+<pre id="build-snippet"><code><span class="c"># requires Xcode command line tools</span>
+git clone https://github.com/403access/macos-panel.git
+cd macos-panel
+./build.sh
+
+cp -R build/MacosPanel.app /Applications/
+open /Applications/MacosPanel.app</code></pre>
+          <p class="code-note">Builds with Swift Package Manager in a few seconds. No Xcode project needed.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="final">
+    <div class="container">
+      <div class="final-card reveal">
+        <svg class="final-mark" viewBox="0 0 64 64" aria-hidden="true">
+          <rect width="64" height="64" rx="15" fill="#101419"/>
+          <rect x="14" y="21" width="36" height="8" rx="4" fill="#ffffff" opacity=".13"/>
+          <rect x="14" y="21" width="26" height="8" rx="4" fill="#3ddc97"/>
+          <rect x="14" y="35" width="36" height="8" rx="4" fill="#ffffff" opacity=".13"/>
+          <rect x="14" y="35" width="33" height="8" rx="4" fill="#ffb26b"/>
+        </svg>
+        <h2>Know what your Mac is doing.</h2>
+        <p>Free, open source, and one menu bar item away.</p>
+        <div class="cta-row center">
+          <a class="btn btn-primary" href="https://github.com/403access/macos-panel/releases/latest">Download for macOS</a>
+          <a class="btn btn-secondary" href="https://github.com/403access/macos-panel" target="_blank" rel="noreferrer">Star on GitHub</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <div class="container footer-inner">
+    <div class="footer-brand">
+      <span>MacosPanel</span>
+      <p>Built for people who like to keep an eye on things.</p>
+    </div>
+    <div class="footer-links">
+      <a href="https://github.com/403access/macos-panel" target="_blank" rel="noreferrer">GitHub</a>
+      <a href="https://github.com/403access/macos-panel/releases" target="_blank" rel="noreferrer">Releases</a>
+      <a href="https://github.com/403access/macos-panel/issues" target="_blank" rel="noreferrer">Issues</a>
+      <a href="https://github.com/403access/macos-panel/blob/main/README.md" target="_blank" rel="noreferrer">Docs</a>
+    </div>
+  </div>
+  <div class="container footer-fine">
+    <span>© <span id="year">2026</span> MacosPanel</span>
+    <span>Not affiliated with Apple. macOS is a trademark of Apple Inc.</span>
+  </div>
+</footer>
+
+<script src="main.js" defer></script>
+</body>
+</html>
