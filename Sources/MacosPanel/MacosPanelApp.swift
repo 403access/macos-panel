@@ -28,6 +28,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.setActivationPolicy(.accessory)
 
         #if DEBUG
+        // Print detected accessories: `MacosPanel --print-devices`.
+        if ProcessInfo.processInfo.arguments.contains("--print-devices") {
+            let devices = DeviceBatterySampler.read()
+            for device in devices {
+                let charging = device.isCharging.map { $0 ? " charging" : "" } ?? ""
+                print("\(device.kind.rawValue)\t\(device.name)\t\(device.percentText)\(charging)\t\(device.id)")
+            }
+            if devices.isEmpty {
+                print("No accessory batteries found.")
+            }
+            exit(0)
+        }
         // Open the panel in a normal window for layout work: `MacosPanel --preview-panel`.
         if ProcessInfo.processInfo.arguments.contains("--preview-panel") {
             let hosting = NSHostingView(rootView: PanelView(monitor: SystemMonitor()))

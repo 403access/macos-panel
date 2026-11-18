@@ -9,7 +9,11 @@ let package = Package(
     targets: [
         .executableTarget(
             name: "MacosPanel",
-            path: "Sources/MacosPanel"
+            path: "Sources/MacosPanel",
+            linkerSettings: [
+                .linkedFramework("IOKit"),
+                .linkedFramework("IOBluetooth"),
+            ]
         )
     ]
 )

@@ -723,6 +723,54 @@ h2 {
   font-variant-numeric: tabular-nums;
 }
 
+/* device charge demo */
+.device-charge {
+  width: 100%;
+  max-width: 250px;
+  display: grid;
+  gap: 11px;
+}
+
+.device-charge .row {
+  display: grid;
+  grid-template-columns: 62px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  font-size: 11px;
+  color: var(--muted-2);
+}
+
+.device-charge .track {
+  display: block;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+
+.device-charge .track i {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #ffc56f, #ffa14f);
+  box-shadow: 0 0 16px rgba(255, 178, 107, 0.3);
+}
+
+.device-charge .row.low .track i {
+  background: linear-gradient(90deg, #ff8a7a, #ff5f5f);
+  box-shadow: 0 0 16px rgba(255, 107, 107, 0.35);
+}
+
+.device-charge b {
+  color: #d8dee8;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.device-charge .row.low b {
+  color: #ff8a7a;
+}
+
 /* volumes */
 .demo-volumes {
   width: 100%;

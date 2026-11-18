@@ -6,6 +6,8 @@ struct PanelView: View {
 
     @AppStorage("menuBarDisplay") private var display: MenuBarDisplay = .all
     @AppStorage("menuBarShowsBars") private var showsBars = true
+    @AppStorage("menuBarShowsDeviceIcons") private var showsDeviceIcons = true
+    @AppStorage("menuBarDeviceIDs") private var selectedDevices = DeviceSelection()
     @State private var launchAtLogin = LaunchAtLogin.isEnabled
     @State private var loginItemError: String?
 
@@ -38,6 +40,17 @@ struct PanelView: View {
                     .padding(14)
             }
 
+            if !monitor.devices.isEmpty {
+                Divider().opacity(0.5)
+                DevicesSection(
+                    devices: monitor.devices,
+                    selection: $selectedDevices,
+                    showsIcons: $showsDeviceIcons,
+                    refresh: { monitor.refreshDevices(force: true) }
+                )
+                .padding(14)
+            }
+
             Divider().opacity(0.5)
 
             footer
@@ -52,6 +65,9 @@ struct PanelView: View {
             }
         }
         .frame(width: 302)
+        .onAppear {
+            monitor.refreshDevices()
+        }
         .onChange(of: launchAtLogin) { _, newValue in
             guard newValue != LaunchAtLogin.isEnabled else { return }
             do {
@@ -79,6 +95,7 @@ struct PanelView: View {
 
             Button {
                 monitor.refresh()
+                monitor.refreshDevices(force: true)
             } label: {
                 Image(systemName: "arrow.clockwise")
             }
@@ -120,6 +137,41 @@ struct PanelView: View {
             Toggle("CPU", isOn: shows(.cpu))
             Toggle("RAM", isOn: shows(.memory))
             Toggle("Disk", isOn: shows(.storage))
+
+            if !monitor.devices.isEmpty {
+                Divider()
+
+                Toggle("Device Icons", isOn: $showsDeviceIcons)
+
+                Menu("Device Charge") {
+                    ForEach(monitor.devices) { device in
+                        Toggle(isOn: deviceShows(device)) {
+                            Label(
+                                "\(device.name) (\(device.statusText))",
+                                systemImage: device.kind.symbolName
+                            )
+                        }
+                    }
+
+                    Divider()
+
+                    Button("Show All Devices") {
+                        selectedDevices = DeviceSelection(ids: Set(monitor.devices.map(\.id)))
+                    }
+                    .disabled(shownDeviceCount == monitor.devices.count)
+
+                    Button("Hide All Devices") {
+                        selectedDevices = DeviceSelection()
+                    }
+                    .disabled(shownDeviceCount == 0)
+
+                    Divider()
+
+                    Button("Refresh Device Charge") {
+                        monitor.refreshDevices(force: true)
+                    }
+                }
+            }
         } label: {
             Label("Menu Bar", systemImage: "menubar.rectangle")
                 .font(.caption)
@@ -127,7 +179,22 @@ struct PanelView: View {
         .menuStyle(.borderlessButton)
         .menuIndicator(.hidden)
         .fixedSize()
-        .help("Choose which metrics appear in the menu bar")
+        .help("Choose which metrics and device charges appear in the menu bar")
+    }
+
+    private var shownDeviceCount: Int {
+        monitor.devices.filter { selectedDevices.contains($0.id) }.count
+    }
+
+    private func deviceShows(_ device: DeviceBattery) -> Binding<Bool> {
+        Binding(
+            get: { selectedDevices.contains(device.id) },
+            set: { isOn in
+                var updated = selectedDevices
+                updated.set(device.id, enabled: isOn)
+                selectedDevices = updated
+            }
+        )
     }
 
     private func shows(_ metric: MenuBarDisplay) -> Binding<Bool> {
@@ -140,8 +207,9 @@ struct PanelView: View {
                 } else {
                     updated.remove(metric)
                 }
-                // Keep at least one metric so the menu bar item never goes blank.
-                guard !updated.isEmpty else { return }
+                // Keep the menu bar item from going blank: at least one metric, or a
+                // device charge, has to remain visible.
+                guard !updated.isEmpty || shownDeviceCount > 0 else { return }
                 display = updated
             }
         )
@@ -288,6 +356,125 @@ private struct StorageSection: View {
     }
 }
 
+private struct DevicesSection: View {
+    let devices: [DeviceBattery]
+    @Binding var selection: DeviceSelection
+    @Binding var showsIcons: Bool
+    let refresh: () -> Void
+
+    private var shownCount: Int {
+        devices.filter { selection.contains($0.id) }.count
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 6) {
+                Image(systemName: "battery.100percent")
+                    .foregroundStyle(.secondary)
+                Text("Devices")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(.secondary)
+                Spacer(minLength: 8)
+                Text(shownCount == 0 ? "Off" : "\(shownCount) in menu bar")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+
+                Menu {
+                    Toggle("Show Device Icons", isOn: $showsIcons)
+
+                    Divider()
+
+                    Button("Show All in Menu Bar") {
+                        selection = DeviceSelection(ids: Set(devices.map(\.id)))
+                    }
+                    .disabled(shownCount == devices.count)
+
+                    Button("Hide All") {
+                        selection = DeviceSelection()
+                    }
+                    .disabled(shownCount == 0)
+
+                    Divider()
+
+                    Button("Refresh Device Charge", action: refresh)
+                } label: {
+                    Image(systemName: "ellipsis.circle")
+                        .foregroundStyle(.secondary)
+                }
+                .menuStyle(.borderlessButton)
+                .menuIndicator(.hidden)
+                .fixedSize()
+                .help("Device charge options")
+            }
+
+            ForEach(devices) { device in
+                DeviceChargeRow(device: device, isShown: shows(device))
+            }
+        }
+    }
+
+    private func shows(_ device: DeviceBattery) -> Binding<Bool> {
+        Binding(
+            get: { selection.contains(device.id) },
+            set: { isOn in
+                var updated = selection
+                updated.set(device.id, enabled: isOn)
+                selection = updated
+            }
+        )
+    }
+}
+
+private struct DeviceChargeRow: View {
+    let device: DeviceBattery
+    @Binding var isShown: Bool
+
+    private var tint: Color { batteryTint(device.fraction, charging: device.isCharging == true) }
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Image(systemName: device.kind.symbolName)
+                .font(.system(size: 12, weight: .medium))
+                .foregroundStyle(.secondary)
+                .frame(width: 17)
+
+            VStack(alignment: .leading, spacing: 4) {
+                HStack(spacing: 5) {
+                    Text(device.name)
+                        .font(.system(size: 12, weight: .medium))
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+
+                    if device.isCharging == true {
+                        Image(systemName: "bolt.fill")
+                            .font(.system(size: 9))
+                            .foregroundStyle(.green)
+                    }
+
+                    Spacer(minLength: 6)
+
+                    Text(device.percentText)
+                        .font(.system(size: 12, weight: .semibold, design: .rounded))
+                        .monospacedDigit()
+                        .foregroundStyle(tint)
+                }
+
+                if let fraction = device.fraction {
+                    UsageBar(fraction: fraction, tint: tint)
+                }
+            }
+            .help(device.statusText)
+
+            Toggle("", isOn: $isShown)
+                .toggleStyle(.switch)
+                .controlSize(.mini)
+                .labelsHidden()
+                .help("Show \(device.name) charge in the menu bar")
+                .accessibilityLabel("Show \(device.name) charge in the menu bar")
+        }
+    }
+}
+
 // MARK: - Components
 
 private struct SectionHeader: View {
@@ -362,5 +549,15 @@ private func usageTint(_ fraction: Double) -> Color {
     case ..<0.70: .green
     case ..<0.88: .orange
     default: .red
+    }
+}
+
+private func batteryTint(_ fraction: Double?, charging: Bool = false) -> Color {
+    if charging { return .green }
+    guard let fraction else { return .secondary }
+    switch fraction {
+    case ..<0.20: return .red
+    case ..<0.50: return .orange
+    default: return .green
     }
 }

@@ -3,6 +3,7 @@ import Foundation
 @MainActor
 final class SystemMonitor: ObservableObject {
     @Published private(set) var snapshot: Snapshot = .empty
+    @Published private(set) var devices: [DeviceBattery] = []
 
     @Published var refreshInterval: TimeInterval {
         didSet {
@@ -13,6 +14,10 @@ final class SystemMonitor: ObservableObject {
     }
 
     private var timer: Timer?
+    private let batteryQueue = DispatchQueue(label: "dev.olivermolnar.macos-panel.battery", qos: .utility)
+    private var lastBatteryRefresh = Date.distantPast
+    private var isReadingBatteries = false
+    private let batteryRefreshInterval: TimeInterval = 30
 
     private enum Keys {
         static let refreshInterval = "refreshInterval"
@@ -27,6 +32,26 @@ final class SystemMonitor: ObservableObject {
 
     func refresh() {
         snapshot = SystemSampler.snapshot()
+        refreshDevices()
+    }
+
+    /// Reads peripheral charge levels on a background queue. Wireless device batteries change
+    /// slowly, so this runs on its own cadence instead of with every system sample.
+    func refreshDevices(force: Bool = false) {
+        guard !isReadingBatteries else { return }
+        if !force, Date().timeIntervalSince(lastBatteryRefresh) < batteryRefreshInterval { return }
+
+        isReadingBatteries = true
+        lastBatteryRefresh = Date()
+
+        batteryQueue.async { [weak self] in
+            let devices = DeviceBatterySampler.read()
+            DispatchQueue.main.async {
+                guard let self else { return }
+                self.devices = devices
+                self.isReadingBatteries = false
+            }
+        }
     }
 
     private func startTimer() {

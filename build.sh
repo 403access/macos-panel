@@ -38,6 +38,8 @@ cat > "${APP_DIR}/Contents/Info.plist" <<PLIST
     <true/>
     <key>NSHighResolutionCapable</key>
     <true/>
+    <key>NSBluetoothAlwaysUsageDescription</key>
+    <string>MacosPanel reads the names of paired accessories so their battery levels can be labelled.</string>
 </dict>
 </plist>
 PLIST

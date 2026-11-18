@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>MacosPanel — CPU, RAM and storage in your menu bar</title>
-<meta name="description" content="MacosPanel is a tiny native macOS menu bar app that shows live CPU, RAM and disk usage as three bars you can read at a glance. Free, open source, no Dock icon.">
+<meta name="description" content="MacosPanel is a tiny native macOS menu bar app that shows live CPU, RAM and disk usage as three bars you can read at a glance, plus the battery charge of your wireless mouse and keyboard. Free, open source, no Dock icon.">
 <meta name="theme-color" content="#08090c">
 <meta property="og:title" content="MacosPanel — CPU, RAM and storage in your menu bar">
 <meta property="og:description" content="Three live bars in your menu bar: CPU, memory and disk. Native Swift, no background daemons, no subscriptions.">
@@ -113,6 +113,30 @@
           </div>
           <h3>Three bars, one glance</h3>
           <p>CPU and RAM used along with storage free sit right in the menu bar, labelled with their percentages and the GB left. Read the state of your Mac from across the room.</p>
+        </article>
+
+        <article class="card reveal">
+          <div class="card-visual" aria-hidden="true">
+            <div class="device-charge">
+              <div class="row">
+                <span>Mouse</span>
+                <span class="track"><i style="width:20%"></i></span>
+                <b>20%</b>
+              </div>
+              <div class="row">
+                <span>Keyboard</span>
+                <span class="track"><i style="width:82%"></i></span>
+                <b>82%</b>
+              </div>
+              <div class="row low">
+                <span>Trackpad</span>
+                <span class="track"><i style="width:8%"></i></span>
+                <b>8%</b>
+              </div>
+            </div>
+          </div>
+          <h3>Accessory charge too</h3>
+          <p>Wireless mice, keyboards and trackpads can join the menu bar with their own bar and percentage. Pick devices from the <em>Device Charge</em> menu; low batteries turn red.</p>
         </article>
 
         <article class="card reveal">

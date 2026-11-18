@@ -10,13 +10,19 @@ A small native macOS menu bar app that keeps CPU, RAM usage, and free disk space
 
 - Menu bar item with live bars for CPU, RAM, and storage, tinted green / orange / red as
   usage grows. CPU and RAM show their percentage; storage shows the free space in GB.
-- A **Menu Bar** menu in the panel footer chooses which of the three metrics appear.
+- Optional charge bars for wireless accessories. Connected mice, keyboards, trackpads, and
+  supported Logitech / Apple devices get their own bar, device icon, and percentage in the
+  menu bar, plus a low-battery colour and a charging bolt. Device icons can be turned off
+  with **Device Icons**.
+- A **Menu Bar** menu in the panel footer chooses which of the three metrics appear, and a
+  **Device Charge** submenu enables accessories individually or with **Show All Devices**.
 - A **Bars** toggle switches the menu bar between that visualization (the default) and a
   plain text label.
 - Click the item for a detail panel:
   - CPU used, User and System time, core count, and 1 / 5 / 15-minute load averages.
   - Memory used / free, App, Wired, Compressed, Cached, and swap.
   - Storage used / free for the boot volume plus any other local volumes.
+  - Battery charge for connected wireless accessories, with a switch for each device.
 - Green / orange / red gauges once CPU, memory, or storage gets tight.
 - Configurable refresh interval (1, 2, 5, or 10 seconds).
 - Optional launch at login.
@@ -50,7 +56,11 @@ open /Applications/MacosPanel.app
 
 - Click the menu bar item to open the panel.
 - The **Menu Bar** menu in the panel footer toggles CPU, RAM, and Disk independently; at
-  least one stays on.
+  least one metric stays on unless a device charge is also shown.
+- The same menu has a **Device Charge** submenu. Turn on individual accessories, or use
+  **Show All Devices** / **Hide All Devices**. The panel's **Devices** section has the same
+  switches next to each battery level. **Device Icons** hides the mouse / keyboard / trackpad
+  glyph in the menu bar, leaving only the bar and percentage.
 - The **Bars** switch next to it toggles between the bar visualization (default) and a text label.
 - The gear menu has the refresh interval, **Launch at Login**, and **Quit**.
 - Preferences persist in `dev.olivermolnar.macos-panel`.
@@ -70,6 +80,12 @@ open /Applications/MacosPanel.app
   so purgeable space counts as free. The boot volume is always listed first.
 - In the menu bar, every bar shows **used** space. CPU and RAM show the used percentage; the
   storage number is the remaining free space.
+- **Accessory charge** comes from the system rather than from polling a vendor app:
+  Apple Magic Mouse / Keyboard / Trackpad values are read from the
+  `AppleDeviceManagementHIDEventService` IORegistry nodes, and Logitech devices are queried
+  over HID++ 2.0 (unified battery feature `0x1004`, legacy feature `0x1000`). The list is
+  refreshed every 30 seconds on a background queue, so it does not add work to the 1–10
+  second system sampling loop. Selected device IDs persist across launches and reconnects.
 - Values refresh every 2 seconds by default.
 
 ## Development
@@ -77,6 +93,7 @@ open /Applications/MacosPanel.app
 ```bash
 swift build
 .build/debug/MacosPanel --preview-panel   # show the panel in a normal window
+.build/debug/MacosPanel --print-devices   # list detected accessories and battery levels
 ```
 
 `build.sh` compiles the release binary, assembles the `.app` bundle (`LSUIElement`, so no Dock
