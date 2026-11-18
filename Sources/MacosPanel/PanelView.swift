@@ -6,6 +6,7 @@ struct PanelView: View {
 
     @AppStorage("menuBarDisplay") private var display: MenuBarDisplay = .all
     @AppStorage("menuBarShowsBars") private var showsBars = true
+    @AppStorage("menuBarShowsMetricIcons") private var showsMetricIcons = false
     @AppStorage("menuBarShowsDeviceIcons") private var showsDeviceIcons = true
     @AppStorage("menuBarDeviceIDs") private var selectedDevices = DeviceSelection()
     @State private var launchAtLogin = LaunchAtLogin.isEnabled
@@ -138,9 +139,11 @@ struct PanelView: View {
             Toggle("RAM", isOn: shows(.memory))
             Toggle("Disk", isOn: shows(.storage))
 
-            if !monitor.devices.isEmpty {
-                Divider()
+            Divider()
 
+            Toggle("Metric Icons", isOn: $showsMetricIcons)
+
+            if !monitor.devices.isEmpty {
                 Toggle("Device Icons", isOn: $showsDeviceIcons)
 
                 Menu("Device Charge") {
@@ -179,7 +182,7 @@ struct PanelView: View {
         .menuStyle(.borderlessButton)
         .menuIndicator(.hidden)
         .fixedSize()
-        .help("Choose which metrics and device charges appear in the menu bar")
+        .help("Choose which metrics, icons, and device charges appear in the menu bar")
     }
 
     private var shownDeviceCount: Int {

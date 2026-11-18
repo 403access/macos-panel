@@ -36,6 +36,7 @@ struct MenuBarLabel: View {
     @ObservedObject var monitor: SystemMonitor
     @AppStorage("menuBarDisplay") private var display: MenuBarDisplay = .all
     @AppStorage("menuBarShowsBars") private var showsBars = true
+    @AppStorage("menuBarShowsMetricIcons") private var showsMetricIcons = false
     @AppStorage("menuBarShowsDeviceIcons") private var showsDeviceIcons = true
     @AppStorage("menuBarDeviceIDs") private var selectedDevices = DeviceSelection()
     @Environment(\.colorScheme) private var colorScheme
@@ -74,7 +75,9 @@ struct MenuBarLabel: View {
                     MenuBarMetricSegment(
                         fraction: cpu.usage,
                         text: cpu.usage.percentText,
-                        tint: usageTint(cpu.usage)
+                        tint: usageTint(cpu.usage),
+                        icon: "cpu",
+                        showsIcon: showsMetricIcons
                     )
                 }
 
@@ -82,7 +85,9 @@ struct MenuBarLabel: View {
                     MenuBarMetricSegment(
                         fraction: memory.usedFraction,
                         text: memory.usedFraction.percentText,
-                        tint: usageTint(memory.usedFraction)
+                        tint: usageTint(memory.usedFraction),
+                        icon: "memorychip",
+                        showsIcon: showsMetricIcons
                     )
                 }
 
@@ -90,7 +95,9 @@ struct MenuBarLabel: View {
                     MenuBarMetricSegment(
                         fraction: volume.usedFraction,
                         text: ByteFormat.compactFree(volume.free),
-                        tint: usageTint(volume.usedFraction)
+                        tint: usageTint(volume.usedFraction),
+                        icon: "internaldrive",
+                        showsIcon: showsMetricIcons
                     )
                 }
 
@@ -103,22 +110,31 @@ struct MenuBarLabel: View {
                 }
             }
         } else {
-            HStack(spacing: 6) {
-                if !textLabel.isEmpty {
-                    Text(textLabel)
-                        .font(.system(size: 12, weight: .medium, design: .rounded))
-                        .monospacedDigit()
+            HStack(spacing: 4) {
+                ForEach(Array(textMetrics.enumerated()), id: \.element.id) { index, metric in
+                    if index > 0 {
+                        Text("·")
+                    }
+
+                    HStack(spacing: 2.5) {
+                        if showsMetricIcons {
+                            Image(systemName: metric.icon)
+                        }
+                        Text(metric.text)
+                    }
                 }
 
-                if textLabel.isEmpty, shownDevices.isEmpty {
+                if textMetrics.isEmpty, shownDevices.isEmpty {
                     Text("—")
-                        .font(.system(size: 12, weight: .medium, design: .rounded))
                 }
 
                 ForEach(shownDevices) { device in
                     MenuBarDeviceTextSegment(device: device, showsIcon: showsDeviceIcons)
+                        .padding(.leading, 2)
                 }
             }
+            .font(.system(size: 12, weight: .medium, design: .rounded))
+            .monospacedDigit()
         }
     }
 
@@ -137,18 +153,20 @@ struct MenuBarLabel: View {
             || (display.contains(.storage) && primaryVolume != nil)
     }
 
-    private var textLabel: String {
-        var parts: [String] = []
+    private var textMetrics: [MenuBarTextMetric] {
+        var parts: [MenuBarTextMetric] = []
         if display.contains(.cpu) {
-            parts.append("CPU \(cpuText)")
+            parts.append(MenuBarTextMetric(id: "cpu", icon: "cpu", text: "CPU \(cpuText)"))
         }
         if display.contains(.memory) {
-            parts.append("RAM \(memoryText)")
+            parts.append(MenuBarTextMetric(id: "memory", icon: "memorychip", text: "RAM \(memoryText)"))
         }
         if display.contains(.storage) {
-            parts.append("\(storageText) free")
+            parts.append(
+                MenuBarTextMetric(id: "storage", icon: "internaldrive", text: "\(storageText) free")
+            )
         }
-        return parts.joined(separator: " · ")
+        return parts
     }
 
     private var cpuText: String {
@@ -196,14 +214,27 @@ struct MenuBarLabel: View {
     }
 }
 
+private struct MenuBarTextMetric: Identifiable {
+    let id: String
+    let icon: String
+    let text: String
+}
+
 /// One CPU / RAM / disk metric in the bar-style menu bar label.
 private struct MenuBarMetricSegment: View {
     let fraction: Double
     let text: String
     let tint: Color
+    let icon: String
+    let showsIcon: Bool
 
     var body: some View {
         HStack(spacing: 3.5) {
+            if showsIcon {
+                Image(systemName: icon)
+                    .font(.system(size: 11, weight: .medium))
+            }
+
             MenuBarBar(fraction: fraction, tint: tint, width: 28)
 
             Text(text)

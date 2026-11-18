@@ -10,6 +10,7 @@ A small native macOS menu bar app that keeps CPU, RAM usage, and free disk space
 
 - Menu bar item with live bars for CPU, RAM, and storage, tinted green / orange / red as
   usage grows. CPU and RAM show their percentage; storage shows the free space in GB.
+  Optional SF Symbol icons identify each metric and are off by default.
 - Optional charge bars for wireless accessories. Connected mice, keyboards, trackpads, and
   supported Logitech / Apple devices get their own bar, device icon, and percentage in the
   menu bar, plus a low-battery colour and a charging bolt. Device icons can be turned off
@@ -57,6 +58,8 @@ open /Applications/MacosPanel.app
 - Click the menu bar item to open the panel.
 - The **Menu Bar** menu in the panel footer toggles CPU, RAM, and Disk independently; at
   least one metric stays on unless a device charge is also shown.
+- **Metric Icons** adds a CPU, memory-chip, or drive glyph in front of each metric. It is
+  off by default and applies to both the bar and text styles.
 - The same menu has a **Device Charge** submenu. Turn on individual accessories, or use
   **Show All Devices** / **Hide All Devices**. The panel's **Devices** section has the same
   switches next to each battery level. **Device Icons** hides the mouse / keyboard / trackpad
