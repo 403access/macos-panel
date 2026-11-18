@@ -33,6 +33,8 @@ A small native macOS menu bar app that keeps CPU, RAM usage, and free disk space
 
 - macOS 14 (Sonoma) or newer
 - Xcode command line tools (Swift 5.9+)
+- **Input Monitoring** permission if you want Logitech HID++ battery levels; Apple Magic
+  accessories are read through the IORegistry and do not need it.
 
 ## Build and run
 
@@ -89,6 +91,9 @@ open /Applications/MacosPanel.app
   over HID++ 2.0 (unified battery feature `0x1004`, legacy feature `0x1000`). The list is
   refreshed every 30 seconds on a background queue, so it does not add work to the 1–10
   second system sampling loop. Selected device IDs persist across launches and reconnects.
+  Logitech HID++ needs **Input Monitoring** (System Settings → Privacy & Security → Input
+  Monitoring); the panel shows an **Allow Access…** hint when it is missing. Grant it, then
+  relaunch the app. Apple accessories do not need this permission.
 - Values refresh every 2 seconds by default.
 
 ## Development
@@ -100,8 +105,12 @@ swift build
 ```
 
 `build.sh` compiles the release binary, assembles the `.app` bundle (`LSUIElement`, so no Dock
-icon), and ad-hoc signs it. Add an app icon by dropping an `.icns` into
-`Contents/Resources` and referencing it from `CFBundleIconFile` in `build.sh` if you want one.
+icon), and signs it. It uses the first available **Apple Development** or **Developer ID
+Application** identity so Input Monitoring and other macOS grants survive rebuilds; set
+`CODESIGN_IDENTITY` to choose a different identity. Without an identity it falls back to
+ad-hoc signing, and macOS may require granting Input Monitoring again after every rebuild.
+Add an app icon by dropping an `.icns` into `Contents/Resources` and referencing it from
+`CFBundleIconFile` in `build.sh` if you want one.
 
 ## Website
 

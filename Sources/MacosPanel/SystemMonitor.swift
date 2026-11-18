@@ -4,6 +4,7 @@ import Foundation
 final class SystemMonitor: ObservableObject {
     @Published private(set) var snapshot: Snapshot = .empty
     @Published private(set) var devices: [DeviceBattery] = []
+    @Published private(set) var needsInputMonitoring = false
 
     @Published var refreshInterval: TimeInterval {
         didSet {
@@ -45,13 +46,20 @@ final class SystemMonitor: ObservableObject {
         lastBatteryRefresh = Date()
 
         batteryQueue.async { [weak self] in
-            let devices = DeviceBatterySampler.read()
+            let reading = DeviceBatterySampler.read()
             DispatchQueue.main.async {
                 guard let self else { return }
-                self.devices = devices
+                self.devices = reading.devices
+                self.needsInputMonitoring = reading.needsInputMonitoring
                 self.isReadingBatteries = false
             }
         }
+    }
+
+    /// Asks macOS for Input Monitoring and retries the Logitech battery read.
+    func requestInputMonitoring() {
+        _ = HIDAccess.request()
+        refreshDevices(force: true)
     }
 
     private func startTimer() {

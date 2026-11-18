@@ -61,11 +61,32 @@ struct DeviceBattery: Identifiable, Equatable {
 
 // MARK: - Sampler
 
+struct DeviceBatteryReading {
+    let devices: [DeviceBattery]
+    /// A Logitech device is connected but macOS has not granted Input Monitoring.
+    let needsInputMonitoring: Bool
+}
+
+enum HIDAccess {
+    static var isGranted: Bool {
+        IOHIDCheckAccess(kIOHIDRequestTypeListenEvent).rawValue == kIOHIDAccessTypeGranted.rawValue
+    }
+
+    /// Registers the app in System Settings and triggers the system prompt.
+    @discardableResult
+    static func request() -> Bool {
+        IOHIDRequestAccess(kIOHIDRequestTypeListenEvent)
+    }
+}
+
 enum DeviceBatterySampler {
-    static func read() -> [DeviceBattery] {
+    static func read() -> DeviceBatteryReading {
         let bluetoothNames = bluetoothNamesByAddress()
         var devices = appleHIDDevices(names: bluetoothNames)
-        devices.append(contentsOf: logitechDevices())
+
+        let accessGranted = HIDAccess.isGranted
+        let logitech = logitechDevices(readBattery: accessGranted)
+        devices.append(contentsOf: logitech.devices)
 
         // A device can be visible through more than one path; keep the entry that has a level.
         var byID: [String: DeviceBattery] = [:]
@@ -76,12 +97,17 @@ enum DeviceBatterySampler {
             byID[device.id] = device
         }
 
-        return byID.values.sorted { lhs, rhs in
+        let sorted = byID.values.sorted { lhs, rhs in
             if lhs.kind != rhs.kind {
                 return kindRank(lhs.kind) < kindRank(rhs.kind)
             }
             return lhs.name.localizedStandardCompare(rhs.name) == .orderedAscending
         }
+
+        return DeviceBatteryReading(
+            devices: sorted,
+            needsInputMonitoring: !accessGranted && logitech.hasDevice
+        )
     }
 
     private static func kindRank(_ kind: DeviceBattery.Kind) -> Int {
@@ -173,7 +199,7 @@ enum DeviceBatterySampler {
 
     // MARK: Logitech HID++ devices
 
-    private static func logitechDevices() -> [DeviceBattery] {
+    private static func logitechDevices(readBattery: Bool) -> (devices: [DeviceBattery], hasDevice: Bool) {
         let manager = IOHIDManagerCreate(kCFAllocatorDefault, IOOptionBits(kIOHIDOptionsTypeNone))
         IOHIDManagerSetDeviceMatching(manager, nil)
         // Copying the device list works even when opening the manager for input is refused.
@@ -181,7 +207,7 @@ enum DeviceBatterySampler {
         defer { IOHIDManagerClose(manager, IOOptionBits(kIOHIDOptionsTypeNone)) }
 
         guard let devices = IOHIDManagerCopyDevices(manager) as? Set<IOHIDDevice> else {
-            return []
+            return ([], false)
         }
 
         // Logitech accessories expose several HID interfaces. Keep the one most likely to
@@ -209,6 +235,12 @@ enum DeviceBatterySampler {
             candidates[key] = (device, score)
         }
 
+        // Listing HID devices does not require Input Monitoring, but opening them does.
+        // Keep the detection so the UI can explain why a Logitech device has no charge.
+        guard readBattery else {
+            return ([], !candidates.isEmpty)
+        }
+
         var result: [DeviceBattery] = []
         for (key, candidate) in candidates {
             guard let battery = logitechBattery(device: candidate.device) else { continue }
@@ -226,7 +258,7 @@ enum DeviceBatterySampler {
                 )
             )
         }
-        return result
+        return (result, !candidates.isEmpty)
     }
 
     private static func logitechBattery(device: IOHIDDevice) -> (percent: Int?, isCharging: Bool?)? {

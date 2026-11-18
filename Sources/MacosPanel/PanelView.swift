@@ -41,12 +41,14 @@ struct PanelView: View {
                     .padding(14)
             }
 
-            if !monitor.devices.isEmpty {
+            if !monitor.devices.isEmpty || monitor.needsInputMonitoring {
                 Divider().opacity(0.5)
                 DevicesSection(
                     devices: monitor.devices,
                     selection: $selectedDevices,
                     showsIcons: $showsDeviceIcons,
+                    needsInputMonitoring: monitor.needsInputMonitoring,
+                    requestAccess: requestDeviceAccess,
                     refresh: { monitor.refreshDevices(force: true) }
                 )
                 .padding(14)
@@ -115,6 +117,14 @@ struct PanelView: View {
 
                 Toggle("Launch at Login", isOn: $launchAtLogin)
 
+                if monitor.needsInputMonitoring {
+                    Divider()
+
+                    Button("Allow Input Monitoring…") {
+                        requestDeviceAccess()
+                    }
+                }
+
                 Divider()
 
                 Button("Quit MacosPanel") {
@@ -131,6 +141,13 @@ struct PanelView: View {
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
+    }
+
+    private func requestDeviceAccess() {
+        monitor.requestInputMonitoring()
+        if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_ListenEvent") {
+            NSWorkspace.shared.open(url)
+        }
     }
 
     private var metricsMenu: some View {
@@ -363,6 +380,8 @@ private struct DevicesSection: View {
     let devices: [DeviceBattery]
     @Binding var selection: DeviceSelection
     @Binding var showsIcons: Bool
+    let needsInputMonitoring: Bool
+    let requestAccess: () -> Void
     let refresh: () -> Void
 
     private var shownCount: Int {
@@ -408,6 +427,28 @@ private struct DevicesSection: View {
                 .menuIndicator(.hidden)
                 .fixedSize()
                 .help("Device charge options")
+            }
+
+            if needsInputMonitoring {
+                VStack(alignment: .leading, spacing: 5) {
+                    HStack(spacing: 5) {
+                        Image(systemName: "lock.shield.fill")
+                            .foregroundStyle(.orange)
+                        Text("Input Monitoring needed")
+                            .font(.system(size: 12, weight: .semibold))
+                    }
+
+                    Text("Logitech devices use HID++ to report their charge. Allow MacosPanel under Privacy & Security → Input Monitoring, then relaunch.")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+
+                    Button("Allow Access…", action: requestAccess)
+                        .controlSize(.small)
+                }
+                .padding(8)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(Color.orange.opacity(0.08), in: RoundedRectangle(cornerRadius: 7))
             }
 
             ForEach(devices) { device in

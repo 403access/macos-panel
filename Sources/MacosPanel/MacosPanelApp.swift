@@ -30,12 +30,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         #if DEBUG
         // Print detected accessories: `MacosPanel --print-devices`.
         if ProcessInfo.processInfo.arguments.contains("--print-devices") {
-            let devices = DeviceBatterySampler.read()
-            for device in devices {
+            let reading = DeviceBatterySampler.read()
+            if reading.needsInputMonitoring {
+                print("Input Monitoring is required to read Logitech device batteries.")
+            }
+            for device in reading.devices {
                 let charging = device.isCharging.map { $0 ? " charging" : "" } ?? ""
                 print("\(device.kind.rawValue)\t\(device.name)\t\(device.percentText)\(charging)\t\(device.id)")
             }
-            if devices.isEmpty {
+            if reading.devices.isEmpty {
                 print("No accessory batteries found.")
             }
             exit(0)

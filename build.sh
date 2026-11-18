@@ -44,10 +44,20 @@ cat > "${APP_DIR}/Contents/Info.plist" <<PLIST
 </plist>
 PLIST
 
-if codesign --force --sign - "$APP_DIR" 2>/dev/null; then
+# TCC grants (such as Input Monitoring) are tied to the code signature. An ad-hoc
+# signature changes on every rebuild, so prefer a stable local identity when available.
+IDENTITY="${CODESIGN_IDENTITY:-}"
+if [[ -z "$IDENTITY" ]]; then
+    IDENTITY="$(security find-identity -v -p codesigning 2>/dev/null \
+        | awk -F'"' '/Apple Development|Developer ID Application/ { print $2; exit }')"
+fi
+
+if [[ -n "$IDENTITY" ]] && codesign --force --sign "$IDENTITY" "$APP_DIR" 2>/dev/null; then
+    echo "Signed with ${IDENTITY}"
+elif codesign --force --sign - "$APP_DIR" 2>/dev/null; then
     echo "Signed ad-hoc"
 else
-    echo "warning: ad-hoc signing failed; launch-at-login may not work" >&2
+    echo "warning: code signing failed; launch-at-login may not work" >&2
 fi
 
 echo "Built ${APP_DIR}"
